@@ -19,7 +19,8 @@ const ProductSchema = mongoose.Schema({
   pictures: {
     type: Array,
     required: true
-  }
+  },
+
 }, {minimize: false});
 
 const Product = mongoose.model('Product', ProductSchema);

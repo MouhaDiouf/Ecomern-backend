@@ -23,11 +23,23 @@ const UserSchema = mongoose.Schema({
     required: [true, 'is required']
   },
   isAdmin: {
-    type: String,
+    type: Boolean,
     default: false
-  }
+  },
+  cart: {
+    type: Object,
+    default: {
+      total: 0,
+      count: 0
+    }
+  },
+  notifications: {
+    type: Array,
+    default: []
+  },
+  orders: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Order' }]
 
-})
+}, {minimize: false})
 
 
 UserSchema.statics.findByCredentials = async function(email, password){
@@ -62,6 +74,11 @@ UserSchema.statics.findByCredentials = async function(email, password){
     })
 
   });
+
+  UserSchema.pre('remove', function(next) {
+    // Remove all the Order docs that reference the removed person.
+    this.model('Order').remove({ owner: this._id }, next);
+});
 
 const User = mongoose.model('User', UserSchema);
 
