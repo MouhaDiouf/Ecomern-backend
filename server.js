@@ -5,7 +5,7 @@ const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server,{
   cors: {
-    origin: "https://ecomerce-mo.netlify.app/",
+    origin: process.env.FRONT_END_LINK,
     methods: ["GET", "POST", "PATCH", "DELETE"]
   }
 }
