@@ -1,6 +1,9 @@
 const router = require('express').Router();
 const User = require('../models/userModel');
 const Order = require('../models/OrderModel');
+
+// signup
+
 router.post('/signup', async (req, res)=> {
   const { name, email, password} = req.body;
   try {
@@ -12,6 +15,19 @@ router.post('/signup', async (req, res)=> {
   }
 })
 
+// login
+router.post('/login', async (req, res)=> {
+  const {email, password} = req.body;
+  try {
+    const user = await User.findByCredentials(email, password);
+    res.json(user);
+  } catch (e) {
+    res.status(400).send(e.message)
+  }
+});
+
+
+// get users
 router.get('/', async(req, res)=> {
   try {
     const users = await User.find({isAdmin: false}).populate('orders')
@@ -22,6 +38,7 @@ router.get('/', async(req, res)=> {
   }
 });
 
+// get user orders
 router.get('/:id/orders', async(req, res)=>{
   const {id} = req.params;
   try {
@@ -33,6 +50,7 @@ router.get('/:id/orders', async(req, res)=>{
 
 })
 
+// update users notifs
 router.post('/:id/updateNotifications', async(req, res)=> {
   const {id} = req.params;
   try {
@@ -49,21 +67,16 @@ router.post('/:id/updateNotifications', async(req, res)=> {
   }
 })
 
-router.post('/login', async (req, res)=> {
-  const {email, password} = req.body;
-  try {
-    const user = await User.findByCredentials(email, password);
-    res.json(user);
-  } catch (e) {
-    res.status(400).send(e.message)
-  }
-});
 
 //delete many users (one or many)
-router.delete('/delete-many', async(req, res)=> {
-  const rows = req.body;
+router.delete('/:id', async(req, res)=> {
+  const  {client_id} = req.params;
+  const {current_user_id} = req.body;
+  console.log(req.body);
   try {
-    await User.deleteMany({_id: { $in: rows}});
+    const currentUser = await User.findById(current_user_id)
+    if (!currentUser.isAdmin) res.status(401).json("You don't have the permission."); 
+    await User.findByIdAndDelete(id);
     const users = await User.find({isAdmin: false}).populate('orders')
     res.status(200).json(users)
   } catch (e) {

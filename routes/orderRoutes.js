@@ -29,11 +29,14 @@ router.post('/', async(req, res)=> {
     user.cart = {total: 0, count: 0};
     user.orders.push(order);
     const date = formatDate(new Date());
-    io.emit("ordercreated", {status: 'unread', message: `New order from ${user.name}`, time: date});
+    io.sockets.emit("ordercreated");
+    const notification =  {status: 'unread', message: `New order from ${user.name}`, time: date}
+    io.sockets.emit("new-order", notification);
     user.markModified('orders');
     await user.save();
     await res.status(200).json(user)
   } catch (e) {
+    console.log(e.message);
     res.status(400).json(e.message);
   }
 });

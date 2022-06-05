@@ -3,26 +3,18 @@ const Product = require('../models/ProductModel');
 const User = require('../models/userModel')
 
 
-router.delete('/remove-from-cart', async(req, res)=> {
-  const {productId, price, userId} = req.body;
+
+// get products
+router.get('/', async (req, res)=> {
   try {
-     const user = await User.findById(userId);
-    const userCart = user.cart;
-    userCart.total -= Number(userCart[productId] * Number(price));
-    userCart.count -= userCart[productId]
-    delete userCart[productId];
-    user.cart = userCart;
-    user.markModified('cart');
-    await user.save();
-    res.status(200).json(user)
+    const products = await Product.find();
+    res.status(200).json(products);
   } catch (e) {
-    console.log(e.message);
     res.status(400).send(e.message);
   }
-})
+});
 
-
-
+// create product
 router.post('/', async (req, res)=> {
   try {
     const {name, description, price, category, images:pictures} = req.body;
@@ -32,9 +24,9 @@ router.post('/', async (req, res)=> {
   } catch (e) {
     res.status(400).send(e.message)
   }
-
 });
 
+// update product
 router.patch('/:id', async (req, res)=> {
   const {id} = req.params;
   try {
@@ -49,27 +41,23 @@ router.patch('/:id', async (req, res)=> {
 
 });
 
-router.post('/delete-many', async(req, res)=> {
-  const  rows = req.body;
+// delete product
+router.delete('/:id', async(req, res)=> {
+  const  {id} = req.params;
+  const {user_id} = req.body;
+  console.log(req.body);
   try {
-    await Product.deleteMany({_id: { $in: rows}});
+    const user = await User.findById(user_id)
+    if (!user.isAdmin) res.status(401).json("You don't have the permission.")
+    await Product.findByIdAndDelete(id);
     const products = await Product.find();
     res.status(200).json(products)
   } catch (e) {
-    console.log(e.message);
     res.status(400).send(e.message)
   }
 })
 
-router.get('/', async (req, res)=> {
-  try {
-    const products = await Product.find();
-    res.status(200).json(products);
-  } catch (e) {
-    res.status(400).send(e.message);
-  }
-});
-
+// get one product
 router.get('/:id', async (req, res)=> {
   const {id} = req.params;
   try {
@@ -81,6 +69,7 @@ router.get('/:id', async (req, res)=> {
     res.status(400).send(e.message);
   }
 });
+
 
 router.get('/category/:category', async(req, res)=> {
   const {category} = req.params;
@@ -153,6 +142,24 @@ router.post('/decrease-cart', async(req, res)=> {
   }
 })
 
+// remove from cart
+router.delete('/remove-from-cart', async(req, res)=> {
+  const {productId, price, userId} = req.body;
+  try {
+     const user = await User.findById(userId);
+    const userCart = user.cart;
+    userCart.total -= Number(userCart[productId] * Number(price));
+    userCart.count -= userCart[productId]
+    delete userCart[productId];
+    user.cart = userCart;
+    user.markModified('cart');
+    await user.save();
+    res.status(200).json(user)
+  } catch (e) {
+    console.log(e.message);
+    res.status(400).send(e.message);
+  }
+})
 
 
 
