@@ -48,7 +48,7 @@ app.post('/create-payment', async (req, res)=> {
 
 })
 
-server.listen(PORT, ()=> {
+server.listen(process.env.PORT || PORT, ()=> {
   console.log('listening to port', PORT)
 })
 
